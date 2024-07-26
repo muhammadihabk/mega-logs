@@ -1,16 +1,24 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
+import { Queues } from './enums';
 
 @Injectable()
 export class MessageQueueService implements OnModuleInit, OnModuleDestroy {
   private connection: any;
+  private channel: any;
 
   async onModuleInit() {
-    const queue = 'messages';
-    this.connection = await amqp.connect('amqp://guest:guest@172.17.0.2:5672');
-    const channel1 = await this.connection.createChannel();
-    await channel1.asserQueue(queue);
+    this.connection = await amqp.connect('amqp://guest:guest@messageQueue:5672');
+    this.channel = await this.connection.createChannel();
+    await this.channel.assertQueue(Queues.CUSTOMERS);
+    await this.channel.assertQueue(Queues.PRODUCTS);
+    await this.channel.assertQueue(Queues.ORDERS);
+    await this.channel.assertQueue(Queues.ORDER_ITEMS);
     console.log('amqb connection is started');
+  }
+
+  getConnection() {
+    return this.channel;
   }
 
   async onModuleDestroy() {

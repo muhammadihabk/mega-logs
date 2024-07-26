@@ -1,9 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as Papa from 'papaparse';
+import * as bluebird from 'bluebird';
+import axios from 'axios';
 
 @Injectable()
 export class GenerateDataService {
+  private startRow: number;
+
+  constructor() {
+    this.startRow = 0;
+  }
+
   async fixProductsFile(): Promise<void> {
     let newDataPapaParseFormat: string[] =
       await this.generateNewTranslatedFile();
@@ -81,7 +89,10 @@ export class GenerateDataService {
       const csvConfig = {
         step: (results, parser) => {
           rowCounter++;
-          if (rowCounter <= numRows) {
+          if (
+            rowCounter > this.startRow &&
+            rowCounter <= this.startRow + numRows
+          ) {
             rows.push(results.data);
           }
           if (rows.length === numRows) {
@@ -164,18 +175,26 @@ export class GenerateDataService {
       };
     });
 
+    this.startRow += numRows;
     return entities;
   }
 
   async sendDataToGateway() {
     const entities = await this.getEntities();
-
-    Object.entries(entities).forEach((entity) => {
-      console.log(
-        `\n########## ${entity[0]}:\n`,
-        entity[1].data,
-        '\n##########',
-      );
-    });
+    const promises = [
+      entities.customers.data.map((element) => {
+        axios.post('http://gateway:3000/route-requests/customers', element);
+      }),
+      entities.products.data.map((element) => {
+        axios.post('http://gateway:3000/route-requests/products', element);
+      }),
+      entities.orders.data.map((element) => {
+        axios.post('http://gateway:3000/route-requests/orders', element);
+      }),
+      entities.orderItems.data.map((element) => {
+        axios.post('http://gateway:3000/route-requests/ordersItems', element);
+      }),
+    ];
+    bluebird.all(promises);
   }
 }

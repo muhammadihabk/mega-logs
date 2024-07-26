@@ -6,7 +6,6 @@ services:
     working_dir: /app
     volumes:
       - ./data-generator:/app
-      - /app/node_modules
     ports:
       - '3001:3001'
     command: npm run start:dev
@@ -18,10 +17,19 @@ services:
     working_dir: /app
     volumes:
       - ./gateway:/app
-      - /app/node_modules
     ports:
       - '3000:3000'
     command: npm run start:dev
+
+  messageQueue:
+    image: rabbitmq:alpine
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - '5672:5672'
+volumes:
+  rabbitmq_data:
+    driver: local
 
 networks:
   default:
