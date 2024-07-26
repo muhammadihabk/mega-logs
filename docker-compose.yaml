@@ -1,10 +1,28 @@
 services:
-  app:
-    build: .
+  data-generator:
+    build:
+      context: ./data-generator
+      dockerfile: Dockerfile
     working_dir: /app
     volumes:
-      - ./:/app
+      - ./data-generator:/app
+      - /app/node_modules
+    ports:
+      - '3001:3001'
+    command: npm run start:dev
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./gateway:/app
       - /app/node_modules
     ports:
       - '3000:3000'
     command: npm run start:dev
+
+networks:
+  default:
+    driver: bridge
