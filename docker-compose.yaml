@@ -27,6 +27,16 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     ports:
       - '5672:5672'
+  
+  events-processor-worker:
+    build:
+      context: ./events-processor-worker
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./events-processor-worker:/app
+    command: go run .
+
 volumes:
   rabbitmq_data:
     driver: local

@@ -13,7 +13,10 @@ export class GenerateDataController {
         message: 'Succeeded',
       };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.log('Failed to fix the products file', error);
+      return {
+        message: 'Failed',
+      };
     }
   }
 
@@ -25,7 +28,10 @@ export class GenerateDataController {
         message: 'Succeeded',
       };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.log('Failed to send data to the gateway', error);
+      return {
+        message: 'Failed',
+      };
     }
   }
 }

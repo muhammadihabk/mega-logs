@@ -8,41 +8,69 @@ export class RouteRequestsController {
 
   @Post('customers')
   sendCreateCustomer(@Body() body) {
-    this.messageQueueService
-      .getConnection()
-      .sendToQueue(Queues.CUSTOMERS, Buffer.from(JSON.stringify(body)));
-    return {
-      message: 'Customer to be created.',
-    };
+    try {
+      this.messageQueueService
+        .getConnection()
+        .sendToQueue(Queues.CUSTOMERS, Buffer.from(JSON.stringify(body)));
+      return {
+        message: 'Customer to be created.',
+      };
+    } catch (error) {
+      console.log('Failed to send customers message to the queue', error);
+      return {
+        message: 'Failed',
+      };
+    }
   }
 
   @Post('products')
   sendCreateProduct(@Body() body) {
-    this.messageQueueService
-      .getConnection()
-      .sendToQueue(Queues.PRODUCTS, Buffer.from(JSON.stringify(body)));
-    return {
-      message: 'Product to be created.',
-    };
+    try {
+      this.messageQueueService
+        .getConnection()
+        .sendToQueue(Queues.PRODUCTS, Buffer.from(JSON.stringify(body)));
+      return {
+        message: 'Product to be created.',
+      };
+    } catch (error) {
+      console.log('Failed to send products message to the queue', error);
+      return {
+        message: 'Failed',
+      };
+    }
   }
 
   @Post('orders')
   sendCreateOrders(@Body() body) {
-    this.messageQueueService
-      .getConnection()
-      .sendToQueue(Queues.ORDERS, Buffer.from(JSON.stringify(body)));
-    return {
-      message: 'Order to be created.',
-    };
+    try {
+      this.messageQueueService
+        .getConnection()
+        .sendToQueue(Queues.ORDERS, Buffer.from(JSON.stringify(body)));
+      return {
+        message: 'Order to be created.',
+      };
+    } catch (error) {
+      console.log('Failed to send orders message to the queue', error);
+      return {
+        message: 'Failed',
+      };
+    }
   }
 
   @Post('ordersItems')
   sendCreateOrdersItems(@Body() body) {
-    this.messageQueueService
-      .getConnection()
-      .sendToQueue(Queues.ORDER_ITEMS, Buffer.from(JSON.stringify(body)));
-    return {
-      message: 'Order Item to be created.',
-    };
+    try {
+      this.messageQueueService
+        .getConnection()
+        .sendToQueue(Queues.ORDER_ITEMS, Buffer.from(JSON.stringify(body)));
+      return {
+        message: 'Order Item to be created.',
+      };
+    } catch (error) {
+      console.log('Failed to send orders item message to the queue', error);
+      return {
+        message: 'Failed',
+      };
+    }
   }
 }
