@@ -19,15 +19,25 @@ services:
       - ./gateway:/app
     ports:
       - '3000:3000'
+    depends_on:
+      messageQueue:
+        condition: service_healthy
     command: npm run start:dev
 
   messageQueue:
-    image: rabbitmq:alpine
+    image: rabbitmq:3.13.6-management-alpine
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     ports:
       - '5672:5672'
-  
+      - '15672:15672'
+    restart: always
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 20s
+      timeout: 20s
+      retries: 3
+
   events-processor-worker:
     build:
       context: ./events-processor-worker
@@ -35,10 +45,36 @@ services:
     working_dir: /app
     volumes:
       - ./events-processor-worker:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      messageQueue:
+        condition: service_healthy
     command: go run .
+
+  db:
+    image: mysql:8.4.0
+    container_name: mysql
+    volumes:
+      - data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - '3306:3306'
+    restart: always
+    healthcheck:
+      test: ['CMD', 'mysql', '-h', 'localhost', '-u', '${MYSQL_USER}', '-p${MYSQL_PASSWORD}', '-e', 'SELECT 1']
+      interval: 20s
+      timeout: 20s
+      retries: 3
 
 volumes:
   rabbitmq_data:
+    driver: local
+  data:
     driver: local
 
 networks:
