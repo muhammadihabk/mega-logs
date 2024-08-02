@@ -14,6 +14,7 @@ export class MessageQueueService implements OnModuleInit, OnModuleDestroy {
     await this.channel.assertQueue(Queues.PRODUCTS);
     await this.channel.assertQueue(Queues.ORDERS);
     await this.channel.assertQueue(Queues.ORDER_ITEMS);
+    await this.channel.assertQueue(Queues.SELLERS);
     console.log('amqb connection is started');
   }
 

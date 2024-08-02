@@ -3,4 +3,5 @@ export enum Queues {
   PRODUCTS = 'products',
   ORDERS = 'orders',
   ORDER_ITEMS = 'orderItems',
+  SELLERS = 'sellers',
 }

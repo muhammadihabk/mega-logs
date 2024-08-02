@@ -57,8 +57,8 @@ export class RouteRequestsController {
     }
   }
 
-  @Post('ordersItems')
-  sendCreateOrdersItems(@Body() body) {
+  @Post('orderItems')
+  sendCreateOrderItems(@Body() body) {
     try {
       this.messageQueueService
         .getConnection()
@@ -68,6 +68,23 @@ export class RouteRequestsController {
       };
     } catch (error) {
       console.log('Failed to send orders item message to the queue', error);
+      return {
+        message: 'Failed',
+      };
+    }
+  }
+
+  @Post('sellers')
+  sendCreateOrderSellers(@Body() body) {
+    try {
+      this.messageQueueService
+        .getConnection()
+        .sendToQueue(Queues.SELLERS, Buffer.from(JSON.stringify(body)));
+      return {
+        message: 'Seller to be created.',
+      };
+    } catch (error) {
+      console.log('Failed to send seller message to the queue', error);
       return {
         message: 'Failed',
       };
