@@ -18,11 +18,11 @@ import (
 func main() {
 	db.CreateTablesIfNotExist()
 
-	customers.StartCustomerConsumer()
-	products.StartProductsConsumer()
-	orders.StartOrdersConsumer()
-	orderItems.StartOrderItemsConsumer()
-	sellers.StartSellersConsumer()
+	customers.StartConsumers()
+	products.StartConsumers()
+	orders.StartConsumers()
+	orderItems.StartConsumers()
+	sellers.StartConsumers()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

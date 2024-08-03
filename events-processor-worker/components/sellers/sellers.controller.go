@@ -3,20 +3,38 @@ package sellers
 import (
 	"event-processor-worker/config/messageQueue"
 	"event-processor-worker/utilities"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func StartSellersConsumer() {
-	sellersQueue, err := messageQueue.Channel.QueueDeclare(
-		"sellers",
+var dlxName = "dlx_exchange"
+var dlxRoutingKey = "dlx_routing_key"
+
+func StartConsumers() {
+	startSellerConsumer()
+	startDlxConsumer()
+}
+
+func startSellerConsumer() {
+	args := amqp.Table{
+		"x-queue-type":              "quorum",
+		"x-delivery-limit":          5,
+		"x-dead-letter-exchange":    dlxName,
+		"x-dead-letter-routing-key": dlxRoutingKey,
+	}
+	queueName := "sellers"
+	_, err := messageQueue.Channel.QueueDeclare(
+		queueName,
 		true,
 		false,
 		false,
 		false,
-		nil,
+		args,
 	)
-	utilities.ErrorHandler(err, "Failed to connect to sellers queue")
+	utilities.ErrorHandler(err, "Failed to declare sellers queue")
+
 	sellersMessages, err := messageQueue.Channel.Consume(
-		sellersQueue.Name,
+		queueName,
 		"",
 		false,
 		false,
@@ -29,6 +47,59 @@ func StartSellersConsumer() {
 	go func() {
 		for d := range sellersMessages {
 			PersistSeller(d)
+		}
+	}()
+}
+
+func startDlxConsumer() {
+	dlxArgs := amqp.Table{
+		"x-queue-type": "quorum",
+	}
+	queueName := "dlx_queue"
+
+	err := messageQueue.Channel.ExchangeDeclare(
+		dlxName,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	utilities.ErrorHandler(err, "Failed to declare seller DLX exchange")
+
+	_, err = messageQueue.Channel.QueueDeclare(
+		queueName,
+		true,
+		false,
+		false,
+		false,
+		dlxArgs,
+	)
+	utilities.ErrorHandler(err, "Failed to declare seller DLX queue")
+
+	messageQueue.Channel.QueueBind(
+		queueName,
+		dlxRoutingKey,
+		dlxName,
+		false,
+		nil,
+	)
+
+	dlxMessages, err := messageQueue.Channel.Consume(
+		queueName,
+		"",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	utilities.ErrorHandler(err, "Failed to get DLX messages")
+
+	go func() {
+		for d := range dlxMessages {
+			HandleDlxMessages(d)
 		}
 	}()
 }

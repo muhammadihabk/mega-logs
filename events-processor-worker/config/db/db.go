@@ -39,6 +39,10 @@ func getDbConnection() *sql.DB {
 	return db
 }
 
+func GetDB() *sql.DB {
+	return db
+}
+
 func CreateTablesIfNotExist() {
 	sqlScript, err := os.ReadFile("./config/db/sql-scripts/createTables.sql")
 	utilities.ErrorHandler(err, "Failed to read createTables.sql file.")
