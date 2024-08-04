@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS customers (
   id INT AUTO_INCREMENT,
   customer_key VARCHAR(255) NOT NULL,
-  customer_zip_code_prefix INT NOT NULL,
+  customer_zip_code_prefix VARCHAR(10) NOT NULL,
   customer_city VARCHAR(255) NOT NULL,
   customer_state CHAR(2) NOT NULL,
 
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS orderItems (
 CREATE TABLE IF NOT EXISTS sellers (
   id INT AUTO_INCREMENT,
   seller_key VARCHAR(255),
-  seller_zip_code_prefix INT NOT NULL,
+  seller_zip_code_prefix VARCHAR(10) NOT NULL,
   seller_city VARCHAR(255) NOT NULL,
   seller_state CHAR(2) NOT NULL,
 
