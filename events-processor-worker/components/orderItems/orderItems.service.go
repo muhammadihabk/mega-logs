@@ -2,9 +2,9 @@ package orderItems
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"event-processor-worker/config/db"
+	"event-processor-worker/utilities"
 	"log"
 	"strconv"
 	"time"
@@ -22,24 +22,12 @@ type OrderItem struct {
 	FreightValue      string      `json:"freight_value"`
 }
 
-func PersistOrderItem(delivery amqp.Delivery) {
-	result, err := processMessage(delivery.Body)
-	if err != nil {
-		log.Printf("Failed to persist orderItem.\n%s Message requeued.\n%v", delivery.Body, err)
-		delivery.Nack(false, true)
-		return
-	}
-
-	delivery.Ack(false)
-	log.Printf("Message acknowledged.\n%s ", result)
-}
-
-func processMessage(data []byte) (sql.Result, error) {
+func processMessage(data []byte) error {
 	db := db.GetDB()
 
 	var orderItem OrderItem
 	if err := json.Unmarshal(data, &orderItem); err != nil {
-		return nil, err
+		return err
 	}
 	orderItemNum, _ := orderItem.OrderItemNum.Int64()
 
@@ -63,9 +51,11 @@ func processMessage(data []byte) (sql.Result, error) {
 	`
 
 	price, err := strconv.ParseFloat(orderItem.Price, 64)
+	utilities.ErrorHandler(err, "Failed to parse price")
 	freightValue, err := strconv.ParseFloat(orderItem.FreightValue, 64)
+	utilities.ErrorHandler(err, "Failed to parse freightValue")
 
-	result, err := db.ExecContext(ctx, query,
+	_, err = db.ExecContext(ctx, query,
 		orderItem.OrderID,
 		orderItem.ProductID,
 		orderItemNum,
@@ -75,12 +65,12 @@ func processMessage(data []byte) (sql.Result, error) {
 		freightValue,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return result, nil
+	return nil
 }
 
-func HandleDlxMessages(delivery amqp.Delivery) {
+func handleDlxMessages(delivery amqp.Delivery) {
 	log.Printf("This is a placeholder for handling DLX messages, maybe alerting, depends on the business. Message:\n%s", delivery.Body)
 	delivery.Ack(false)
 }

@@ -22,18 +22,6 @@ type Product struct {
 	ProductWidthCm           json.Number `json:"product_width_cm"`
 }
 
-func PersistProduct(delivery amqp.Delivery) {
-	err := processMessage(delivery.Body)
-	if err != nil {
-		log.Printf("Failed to persist product.\n%s Message requeued.\n%v", delivery.Body, err)
-		delivery.Nack(false, true)
-		return
-	}
-
-	delivery.Ack(false)
-	log.Printf("Message acknowledged.\n%v ", delivery.Body)
-}
-
 func processMessage(data []byte) error {
 	db := db.GetDB()
 
@@ -84,7 +72,7 @@ func processMessage(data []byte) error {
 	return nil
 }
 
-func HandleDlxMessages(delivery amqp.Delivery) {
+func handleDlxMessages(delivery amqp.Delivery) {
 	log.Printf("This is a placeholder for handling DLX messages, maybe alerting, depends on the business. Message:\n%s", delivery.Body)
 	delivery.Ack(false)
 }

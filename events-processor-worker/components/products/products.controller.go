@@ -3,12 +3,17 @@ package products
 import (
 	"event-processor-worker/config/messageQueue"
 	"event-processor-worker/utilities"
+	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 var dlxName = "dlx_exchange"
 var dlxRoutingKey = "dlx_routing_key"
+
+const numWorkers = 10
+
+var taskChannel = make(chan amqp.Delivery)
 
 func StartConsumers() {
 	startProductConsumer()
@@ -44,11 +49,29 @@ func startProductConsumer() {
 	)
 	utilities.ErrorHandler(err, "Failed to get products messages")
 
-	go func() {
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
+
+	func() {
 		for d := range productsMessages {
-			PersistProduct(d)
+			taskChannel <- d
 		}
+		close(taskChannel)
 	}()
+}
+
+func worker() {
+	for delivery := range taskChannel {
+		err := processMessage(delivery.Body)
+		if err != nil {
+			log.Printf("Failed to persist product.\n%s Message requeued.\n%v", delivery.Body, err)
+			delivery.Nack(false, true)
+		} else {
+			delivery.Ack(false)
+			log.Printf("Message acknowledged.\n%s ", delivery.Body)
+		}
+	}
 }
 
 func startDlxConsumer() {
@@ -99,7 +122,7 @@ func startDlxConsumer() {
 
 	go func() {
 		for d := range dlxMessages {
-			HandleDlxMessages(d)
+			handleDlxMessages(d)
 		}
 	}()
 }

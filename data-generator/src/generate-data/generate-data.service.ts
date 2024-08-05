@@ -123,7 +123,7 @@ export class GenerateDataService {
       orderItems: { filePath: 'data/order_items.csv', data: [] },
       sellers: { filePath: 'data/sellers.csv', data: [] },
     };
-    const numRows = 10;
+    const numRows = 1000;
 
     let customers = await this.parseRows(entities.customers.filePath, numRows);
     entities.customers.data = customers.map((customer) => {

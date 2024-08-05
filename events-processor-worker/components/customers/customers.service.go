@@ -17,18 +17,6 @@ type Customer struct {
 	CustomerState         string `json:"customer_state"`
 }
 
-func PersistCustomer(delivery amqp.Delivery) {
-	err := processMessage(delivery.Body)
-	if err != nil {
-		log.Printf("Failed to persist customer.\n%s Message requeued.\n%v", delivery.Body, err)
-		delivery.Nack(false, true)
-		return
-	}
-
-	delivery.Ack(false)
-	log.Printf("Message acknowledged.\n%v ", delivery.Body)
-}
-
 func processMessage(data []byte) error {
 	var customer Customer
 	if err := json.Unmarshal(data, &customer); err != nil {
@@ -58,7 +46,7 @@ func processMessage(data []byte) error {
 	return nil
 }
 
-func HandleDlxMessages(delivery amqp.Delivery) {
+func handleDlxMessages(delivery amqp.Delivery) {
 	log.Printf("This is a placeholder for handling DLX messages, maybe alerting, depends on the business. Message:\n%s", delivery.Body)
 	delivery.Ack(false)
 }
